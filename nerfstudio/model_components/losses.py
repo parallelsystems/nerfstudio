@@ -226,8 +226,8 @@ def ds_nerf_depth_loss(
         Depth loss scalar.
     """
     loss = -torch.log(weights + EPS) * torch.exp(-((steps - termination_depth[:, None]) ** 2) / (2 * sigma)) * lengths
-    loss = loss * (termination_depth > 0)[:, None]
-    return torch.mean(loss.sum(-2))
+    loss = loss.sum(-2) * (termination_depth > 0)
+    return torch.mean(loss)
 
 
 def urban_radiance_field_depth_loss(
@@ -248,10 +248,8 @@ def urban_radiance_field_depth_loss(
     Returns:
         Depth loss scalar.
     """
-    depth_mask = (termination_depth > 0)
     # Expected depth loss
     expected_depth_loss = (termination_depth - predicted_depth) ** 2
-    expected_depth_loss = expected_depth_loss * depth_mask
 
     # Line of sight losses
     target_distribution = torch.distributions.normal.Normal(0.0, sigma / URF_SIGMA_SCALE_FACTOR)
@@ -260,13 +258,14 @@ def urban_radiance_field_depth_loss(
         steps <= termination_depth + sigma, steps >= termination_depth - sigma
     )
     line_of_sight_loss_near = (weights - torch.exp(target_distribution.log_prob(steps - termination_depth))) ** 2
-    line_of_sight_loss_near = (line_of_sight_loss_near_mask * depth_mask[:, None] * line_of_sight_loss_near).sum(-2)
+    line_of_sight_loss_near = (line_of_sight_loss_near_mask * line_of_sight_loss_near).sum(-2)
     line_of_sight_loss_empty_mask = steps < termination_depth - sigma
-    line_of_sight_loss_empty = (line_of_sight_loss_empty_mask * depth_mask[:, None] * weights**2).sum(-2)
+    line_of_sight_loss_empty = (line_of_sight_loss_empty_mask * weights**2).sum(-2)
     line_of_sight_loss = line_of_sight_loss_near + line_of_sight_loss_empty
     
-
-    return torch.mean(expected_depth_loss + line_of_sight_loss)
+    termination_depth = termination_depth[...,0]
+    loss = (expected_depth_loss + line_of_sight_loss) * (termination_depth>0)
+    return torch.mean(loss)
 
 
 def depth_loss(
