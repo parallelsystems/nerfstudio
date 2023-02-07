@@ -118,8 +118,10 @@ class DepthNerfactoModel(NerfactoModel):
             far_plane=torch.max(ground_truth_depth),
         )
         images["depth"] = torch.cat([ground_truth_depth_colormap, predicted_depth_colormap], dim=1)
-        depth_mask = (ground_truth_depth > 0)
-        metrics["depth_mse"] = torch.nn.functional.mse_loss(outputs["depth"][depth_mask], ground_truth_depth[depth_mask])
+        depth_mask = ground_truth_depth > 0
+        metrics["depth_mse"] = torch.nn.functional.mse_loss(
+            outputs["depth"][depth_mask], ground_truth_depth[depth_mask]
+        )
         return metrics, images
 
     def _get_sigma(self):
