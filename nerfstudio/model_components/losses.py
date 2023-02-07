@@ -225,8 +225,10 @@ def ds_nerf_depth_loss(
     Returns:
         Depth loss scalar.
     """
+    depth_mask = (termination_depth > 0)
+    
     loss = -torch.log(weights + EPS) * torch.exp(-((steps - termination_depth[:, None]) ** 2) / (2 * sigma)) * lengths
-    loss = loss.sum(-2) * (termination_depth > 0)
+    loss = loss.sum(-2) * depth_mask
     return torch.mean(loss)
 
 
@@ -248,6 +250,8 @@ def urban_radiance_field_depth_loss(
     Returns:
         Depth loss scalar.
     """
+    depth_mask = (termination_depth > 0)
+    
     # Expected depth loss
     expected_depth_loss = (termination_depth - predicted_depth) ** 2
 
@@ -263,8 +267,7 @@ def urban_radiance_field_depth_loss(
     line_of_sight_loss_empty = (line_of_sight_loss_empty_mask * weights**2).sum(-2)
     line_of_sight_loss = line_of_sight_loss_near + line_of_sight_loss_empty
     
-    termination_depth = termination_depth[...,0]
-    loss = (expected_depth_loss + line_of_sight_loss) * (termination_depth>0)
+    loss = (expected_depth_loss + line_of_sight_loss) * depth_mask
     return torch.mean(loss)
 
 
