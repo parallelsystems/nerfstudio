@@ -192,7 +192,7 @@ class Nerfstudio(DataParser):
             len(semantic_filenames) == len(image_filenames)
         ), """
         Different number of image and semantic filenames.
-        You should check that depth_file_path is specified for every frame (or zero frames) in transforms.json.
+        You should check that semantic_file_path is specified for every frame (or zero frames) in transforms.json.
         """
 
         has_split_files_spec = any(f"{split}_filenames" in meta for split in ("train", "val", "test"))
