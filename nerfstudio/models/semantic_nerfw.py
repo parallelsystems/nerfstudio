@@ -355,8 +355,9 @@ class SemanticNerfWModel(Model):
         # semantics
         ground_truth_semantic_labels = torch.squeeze(batch["semantics"])
         predicted_semantic_labels = torch.argmax(torch.nn.functional.softmax(outputs["semantics"], dim=-1), dim=-1)
-        ground_truth_semantic_colormap = self.semantics.colors[ground_truth_semantic_labels]
-        predicted_semantic_colormap = self.semantics.colors[predicted_semantic_labels]
+        colormap = self.colormap.to(self.device)
+        ground_truth_semantic_colormap = colormap[ground_truth_semantic_labels]
+        predicted_semantic_colormap = colormap[predicted_semantic_labels]
         images_dict["semantics_colormap"] = torch.cat(
             [ground_truth_semantic_colormap, predicted_semantic_colormap], dim=1
         )

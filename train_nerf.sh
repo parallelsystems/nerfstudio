@@ -25,8 +25,10 @@ VIS=viewer+tensorboard
 ns-train semantic-nerfw \
     --data data/nerfstudio/rail_depth_semantic/ \
     --pipeline.model.depth-loss-mult 0.1 \
+    --pipeline.model.include-depth True \
     --pipeline.model.semantic-loss-weight 0.1 \
     --pipeline.model.pass-semantic-gradients False \
+    --vis $VIS \
     nerfstudio-data \
     --auto-scale-poses False \
     --scene-scale 8 \
